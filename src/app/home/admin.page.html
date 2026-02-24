@@ -1,0 +1,162 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Admin Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-segment [(ngModel)]="adminSegment" color="dark" class="ion-margin-bottom" scrollable>
+    <ion-segment-button value="products">
+      <ion-icon name="cube-outline"></ion-icon>
+      <ion-label>Products</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="services">
+      <ion-icon name="car-outline"></ion-icon>
+      <ion-label>Delivery</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="orders">
+      <ion-icon name="receipt-outline"></ion-icon>
+      <ion-label>Orders ({{orders.length}})</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- A.1: Dashboard for Managing Products -->
+  <div *ngIf="adminSegment === 'products'">
+    <!-- Dashboard Stats -->
+    <ion-grid class="ion-margin-bottom">
+      <ion-row>
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-content class="ion-text-center">
+              <ion-icon name="cube-outline" size="large" color="primary"></ion-icon>
+              <h1>{{ products.length }}</h1>
+              <p>Total Products</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-content class="ion-text-center">
+              <ion-icon name="car-outline" size="large" color="secondary"></ion-icon>
+              <h1>{{ services.length }}</h1>
+              <p>Delivery Services</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-content class="ion-text-center">
+              <ion-icon name="receipt-outline" size="large" color="tertiary"></ion-icon>
+              <h1>{{ orders.length }}</h1>
+              <p>Total Orders</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <ion-card>
+      <ion-card-header><ion-card-title>Add New Product</ion-card-title></ion-card-header>
+      <ion-card-content>
+        <ion-item><ion-label position="floating">Name</ion-label><ion-input [(ngModel)]="newProduct.name"></ion-input></ion-item>
+        <ion-item><ion-label position="floating">Price</ion-label><ion-input type="number" [(ngModel)]="newProduct.price"></ion-input></ion-item>
+        <ion-item><ion-label position="floating">Description</ion-label><ion-textarea [(ngModel)]="newProduct.description"></ion-textarea></ion-item>
+        <ion-button expand="block" class="ion-margin-top" (click)="addNewProduct()">Add Product</ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-list>
+      <ion-list-header>Existing Products</ion-list-header>
+      <ion-item *ngFor="let p of products">
+        <ion-thumbnail slot="start"><img [src]="p.img"></ion-thumbnail>
+        <ion-label><h2>{{p.name}}</h2><p>₱{{p.price}}</p></ion-label>
+        <ion-button fill="clear" slot="end" (click)="editProduct(p)"><ion-icon name="create-outline"></ion-icon></ion-button>
+        <ion-button fill="clear" color="danger" slot="end" (click)="deleteProduct(p.id)"><ion-icon name="trash-outline"></ion-icon></ion-button>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <!-- A.2: Manage Product Service Delivery -->
+  <div *ngIf="adminSegment === 'services'">
+    <ion-list>
+      <ion-list-header>Manage Delivery Services</ion-list-header>
+      <ion-card *ngFor="let service of services">
+        <ion-card-content>
+          <ion-item>
+            <ion-label position="stacked">Service Name</ion-label>
+            <ion-input [(ngModel)]="service.name"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Base Price (₱)</ion-label>
+            <ion-input type="number" [(ngModel)]="service.basePrice"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Est. Delivery Time</ion-label>
+            <ion-input [(ngModel)]="service.estimatedTime"></ion-input>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-label>Service Available</ion-label>
+            <ion-toggle slot="end" [(ngModel)]="service.available"></ion-toggle>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+    </ion-list>
+  </div>
+
+  <!-- A.3: View Customer Orders -->
+  <div *ngIf="adminSegment === 'orders'">
+    <ion-card *ngFor="let order of orders">
+      <ion-card-header>
+        <ion-card-subtitle>{{ order.id }} | {{ order.date | date:'short' }}</ion-card-subtitle>
+        <ion-card-title>{{ order.customerName }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p><strong>Address:</strong> {{ order.address }}</p>
+        <p><strong>Contact:</strong> {{ order.contact }}</p>
+        <p><strong>Service:</strong> {{ order.deliveryService?.name }}</p>
+        <p><strong>Total:</strong> ₱{{ order.total }}</p>
+        <ion-list-header>Items</ion-list-header>
+        <ion-item *ngFor="let i of order.items" lines="none">
+          <ion-label>{{i.quantity}}x {{i.product.name}}</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-label>Status</ion-label>
+          <ion-select [value]="order.status" (ionChange)="updateOrderStatus(order, $event.detail.value)">
+            <ion-select-option value="Pending">Pending</ion-select-option>
+            <ion-select-option value="Preparing">Preparing</ion-select-option>
+            <ion-select-option value="Out for Delivery">Out for Delivery</ion-select-option>
+            <ion-select-option value="Delivered">Delivered</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+    <div class="empty-state" *ngIf="orders.length === 0">
+      <p>No customer orders yet.</p>
+    </div>
+  </div>
+
+  <!-- Modal for Editing Product -->
+  <ion-modal [isOpen]="editingProduct !== null" (didDismiss)="cancelEdit()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>Edit Product</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="cancelEdit()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding" *ngIf="editingProduct">
+        <ion-item><ion-label position="floating">Name</ion-label><ion-input [(ngModel)]="editingProduct.name"></ion-input></ion-item>
+        <ion-item><ion-label position="floating">Price</ion-label><ion-input type="number" [(ngModel)]="editingProduct.price"></ion-input></ion-item>
+        <ion-item><ion-label position="floating">Description</ion-label><ion-textarea [(ngModel)]="editingProduct.description"></ion-textarea></ion-item>
+        <ion-button expand="block" class="ion-margin-top" (click)="saveProductUpdate()">Save Changes</ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>
