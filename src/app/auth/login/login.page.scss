@@ -1,0 +1,414 @@
+// ============================================================
+// SCENTIFY LOGIN — LUXURY THEME
+// ============================================================
+
+.login-content {
+  --background: #0D0D0D;
+}
+
+.login-container {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+// ===== LEFT BRAND PANEL =====
+.left-section {
+  flex: 1;
+  background: #0D0D0D;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 48px;
+  overflow: hidden;
+
+  @media (max-width: 768px) { display: none; }
+}
+
+.left-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1A1200 0%, #0D0D0D 50%, #0A0A1A 100%);
+}
+
+.left-orb {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 65%);
+  top: -120px;
+  right: -120px;
+  pointer-events: none;
+
+  &.orb2 {
+    width: 350px;
+    height: 350px;
+    bottom: -80px;
+    left: -80px;
+    top: auto;
+    right: auto;
+    background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 65%);
+  }
+}
+
+.brand-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.brand-logo {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 8px 24px rgba(201,168,76,0.3));
+}
+
+.brand-name {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 56px;
+  font-weight: 300;
+  font-style: italic;
+  color: #E8C97A;
+  margin: 0 0 8px;
+  letter-spacing: 4px;
+}
+
+.brand-tagline {
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  font-weight: 500;
+  margin: 0 0 24px;
+}
+
+.brand-divider {
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #C9A84C, transparent);
+  margin: 0 auto 24px;
+}
+
+.brand-sub {
+  font-size: 14px;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.3);
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.brand-footer {
+  position: absolute;
+  bottom: 32px;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.2);
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+// ===== RIGHT FORM PANEL =====
+.right-section {
+  width: 480px;
+  background: #FDFAF4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    background: #FDFAF4;
+    padding: 40px 24px;
+  }
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+
+  &.shake {
+    animation: shake 0.4s ease;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-8px); }
+  40%       { transform: translateX(8px); }
+  60%       { transform: translateX(-5px); }
+  80%       { transform: translateX(5px); }
+}
+
+// ===== LOGIN HEADER =====
+.login-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.login-logo-mini {
+  font-size: 24px;
+  color: #C9A84C;
+  margin-bottom: 12px;
+  display: block;
+  letter-spacing: 4px;
+}
+
+.login-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 36px;
+  font-weight: 600;
+  color: #0D0D0D;
+  margin: 0 0 8px;
+  letter-spacing: 0.5px;
+}
+
+.login-subtitle {
+  font-size: 13px;
+  color: #9B9B9B;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+// ===== FORM FIELDS =====
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #6B6B6B;
+}
+
+.field-wrap {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1.5px solid #E0D8C8;
+  border-radius: 4px;
+  padding: 0 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus-within {
+    border-color: #C9A84C;
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+  }
+
+  &.field-error {
+    border-color: #E87A7A;
+    box-shadow: 0 0 0 3px rgba(232,122,122,0.12);
+  }
+}
+
+.field-icon {
+  font-size: 17px;
+  color: #C0B8A8;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.field-input {
+  flex: 1;
+  --background: transparent;
+  --color: #0D0D0D;
+  --placeholder-color: #C0B8A8;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  font-size: 14px;
+}
+
+.eye-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #C0B8A8;
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  transition: color 0.2s;
+  &:hover { color: #C9A84C; }
+}
+
+// Error banner
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #B91C1C;
+
+  ion-icon { font-size: 16px; flex-shrink: 0; }
+}
+
+// Remember Me
+.remember-row {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkbox-input { display: none; }
+
+.checkbox-box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #D0C8B8;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  .checkbox-check {
+    font-size: 13px;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+}
+
+.checkbox-input:checked + .checkbox-box {
+  background: #C9A84C;
+  border-color: #C9A84C;
+
+  .checkbox-check { opacity: 1; }
+}
+
+.checkbox-label {
+  font-size: 13px;
+  color: #6B6B6B;
+}
+
+// Sign In Button
+.sign-in-btn {
+  width: 100%;
+  padding: 15px;
+  background: #0D0D0D;
+  color: #E8C97A;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.25s;
+  margin-top: 4px;
+
+  &:hover { background: #2A2A2A; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+  &:active { transform: translateY(0); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+}
+
+// Divider
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0 20px;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: #E0D8C8;
+}
+
+.divider-text {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #B0A898;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// Demo Buttons
+.demo-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.demo-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+
+  &.admin-demo {
+    border: 1.5px solid #E0D8C8;
+    &:hover { border-color: #C9A84C; background: #FFFDF5; box-shadow: 0 4px 12px rgba(201,168,76,0.1); }
+  }
+
+  &.client-demo {
+    border: 1.5px solid #E0D8C8;
+    &:hover { border-color: #4C7BC9; background: #F5F8FF; box-shadow: 0 4px 12px rgba(76,123,201,0.1); }
+  }
+}
+
+.demo-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.demo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.demo-role {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0D0D0D;
+  display: block;
+}
+
+.demo-email {
+  font-size: 11px;
+  color: #9B9B9B;
+  display: block;
+}

@@ -1,14 +1,23 @@
-<ion-header>
+<ion-header class="admin-header">
   <ion-toolbar color="dark">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
+      <ion-back-button defaultHref="/home" color="light"></ion-back-button>
     </ion-buttons>
-    <ion-title>Admin Dashboard</ion-title>
+    <ion-title>
+      <ion-icon name="shield-checkmark" class="header-icon"></ion-icon>
+      Admin Dashboard
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="logout()" color="light">
+        <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-segment [(ngModel)]="adminSegment" color="dark" class="ion-margin-bottom" scrollable>
+<ion-content class="ion-padding admin-content">
+
+  <ion-segment [(ngModel)]="adminSegment" class="ion-margin-bottom" scrollable>
     <ion-segment-button value="products">
       <ion-icon name="cube-outline"></ion-icon>
       <ion-label>Products</ion-label>
@@ -23,118 +32,190 @@
     </ion-segment-button>
   </ion-segment>
 
-  <!-- A.1: Dashboard for Managing Products -->
+  <!-- PRODUCTS SECTION -->
   <div *ngIf="adminSegment === 'products'">
-    <!-- Dashboard Stats -->
-    <ion-grid class="ion-margin-bottom">
+
+    <!-- Modern Metric Cards -->
+    <ion-grid class="metrics-grid">
       <ion-row>
         <ion-col size="12" size-md="4">
-          <ion-card>
-            <ion-card-content class="ion-text-center">
-              <ion-icon name="cube-outline" size="large" color="primary"></ion-icon>
-              <h1>{{ products.length }}</h1>
-              <p>Total Products</p>
+          <ion-card class="metric-card metric-card-primary">
+            <ion-card-content>
+              <div class="metric-icon">
+                <ion-icon name="cash-outline"></ion-icon>
+              </div>
+              <div class="metric-details">
+                <h2>₱{{ totalSales | number:'1.0-0' }}</h2>
+                <p>Total Sales</p>
+              </div>
             </ion-card-content>
           </ion-card>
         </ion-col>
 
         <ion-col size="12" size-md="4">
-          <ion-card>
-            <ion-card-content class="ion-text-center">
-              <ion-icon name="car-outline" size="large" color="secondary"></ion-icon>
-              <h1>{{ services.length }}</h1>
-              <p>Delivery Services</p>
+          <ion-card class="metric-card metric-card-success">
+            <ion-card-content>
+              <div class="metric-icon">
+                <ion-icon name="cart-outline"></ion-icon>
+              </div>
+              <div class="metric-details">
+                <h2>{{ activeOrders }}</h2>
+                <p>Active Orders</p>
+              </div>
             </ion-card-content>
           </ion-card>
         </ion-col>
 
         <ion-col size="12" size-md="4">
-          <ion-card>
-            <ion-card-content class="ion-text-center">
-              <ion-icon name="receipt-outline" size="large" color="tertiary"></ion-icon>
-              <h1>{{ orders.length }}</h1>
-              <p>Total Orders</p>
+          <ion-card class="metric-card metric-card-warning">
+            <ion-card-content>
+              <div class="metric-icon">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+              </div>
+              <div class="metric-details">
+                <h2>{{ lowStockCount }}</h2>
+                <p>Low Stock Alerts</p>
+              </div>
             </ion-card-content>
           </ion-card>
         </ion-col>
       </ion-row>
     </ion-grid>
 
-    <ion-card>
-      <ion-card-header><ion-card-title>Add New Product</ion-card-title></ion-card-header>
+    <!-- Add Product with Drag & Drop -->
+    <ion-card class="add-product-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="add-circle-outline" style="vertical-align: middle; margin-right: 8px;"></ion-icon>
+          Add New Product
+        </ion-card-title>
+      </ion-card-header>
       <ion-card-content>
-        <ion-item><ion-label position="floating">Name</ion-label><ion-input [(ngModel)]="newProduct.name"></ion-input></ion-item>
-        <ion-item><ion-label position="floating">Price</ion-label><ion-input type="number" [(ngModel)]="newProduct.price"></ion-input></ion-item>
-        <ion-item><ion-label position="floating">Description</ion-label><ion-textarea [(ngModel)]="newProduct.description"></ion-textarea></ion-item>
-        <ion-button expand="block" class="ion-margin-top" (click)="addNewProduct()">Add Product</ion-button>
+        <!-- Drag & Drop Zone -->
+        <div class="drag-drop-zone" 
+             (dragover)="onDragOver($event)" 
+             (dragleave)="onDragLeave($event)"
+             (drop)="onDrop($event)"
+             [class.drag-active]="isDragging">
+          <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+          <p class="upload-text">Drag & Drop product image here</p>
+          <p class="upload-subtext">or click to browse</p>
+          <input type="file" #fileInput hidden (change)="onFileSelected($event)" accept="image/*">
+          <ion-button fill="outline" size="small" (click)="fileInput.click()">
+            Browse Files
+          </ion-button>
+        </div>
+
+        <ion-item>
+          <ion-label position="floating">Name</ion-label>
+          <ion-input [(ngModel)]="newProduct.name"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Price</ion-label>
+          <ion-input type="number" [(ngModel)]="newProduct.price"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Description</ion-label>
+          <ion-textarea [(ngModel)]="newProduct.description"></ion-textarea>
+        </ion-item>
+
+        <ion-button expand="block" class="ion-margin-top" color="primary" (click)="addNewProduct()">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Add Product
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+    
+    <!-- Existing Products List -->
+    <ion-card class="products-list-card">
+      <ion-card-header>
+        <ion-card-title>Existing Products</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="products-grid">
+          <div *ngFor="let product of products" class="product-item">
+            <div class="product-quick-view">
+              <img [src]="product.img" [alt]="product.name">
+              <div class="product-info-quick">
+                <h4>{{ product.name }}</h4>
+                <p class="price">₱{{ product.price }}</p>
+              </div>
+              <div class="quick-actions">
+                <ion-button fill="clear" size="small" (click)="editProduct(product)">
+                  <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="deleteProduct(product.id)">
+                  <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
       </ion-card-content>
     </ion-card>
 
-    <ion-list>
-      <ion-list-header>Existing Products</ion-list-header>
-      <ion-item *ngFor="let p of products">
-        <ion-thumbnail slot="start"><img [src]="p.img"></ion-thumbnail>
-        <ion-label><h2>{{p.name}}</h2><p>₱{{p.price}}</p></ion-label>
-        <ion-button fill="clear" slot="end" (click)="editProduct(p)"><ion-icon name="create-outline"></ion-icon></ion-button>
-        <ion-button fill="clear" color="danger" slot="end" (click)="deleteProduct(p.id)"><ion-icon name="trash-outline"></ion-icon></ion-button>
-      </ion-item>
-    </ion-list>
   </div>
 
-  <!-- A.2: Manage Product Service Delivery -->
+  <!-- SERVICES SECTION -->
   <div *ngIf="adminSegment === 'services'">
     <ion-list>
       <ion-list-header>Manage Delivery Services</ion-list-header>
+
       <ion-card *ngFor="let service of services">
         <ion-card-content>
+
           <ion-item>
             <ion-label position="stacked">Service Name</ion-label>
             <ion-input [(ngModel)]="service.name"></ion-input>
           </ion-item>
+
           <ion-item>
-            <ion-label position="stacked">Base Price (₱)</ion-label>
+            <ion-label position="stacked">Base Price</ion-label>
             <ion-input type="number" [(ngModel)]="service.basePrice"></ion-input>
           </ion-item>
+
           <ion-item>
-            <ion-label position="stacked">Est. Delivery Time</ion-label>
+            <ion-label position="stacked">Estimated Time</ion-label>
             <ion-input [(ngModel)]="service.estimatedTime"></ion-input>
           </ion-item>
+
           <ion-item lines="none">
-            <ion-label>Service Available</ion-label>
+            <ion-label>Available</ion-label>
             <ion-toggle slot="end" [(ngModel)]="service.available"></ion-toggle>
           </ion-item>
+
         </ion-card-content>
       </ion-card>
     </ion-list>
   </div>
 
-  <!-- A.3: View Customer Orders -->
+  <!-- ORDERS SECTION -->
   <div *ngIf="adminSegment === 'orders'">
     <ion-card *ngFor="let order of orders">
       <ion-card-header>
-        <ion-card-subtitle>{{ order.id }} | {{ order.date | date:'short' }}</ion-card-subtitle>
         <ion-card-title>{{ order.customerName }}</ion-card-title>
+        <ion-card-subtitle>{{ order.id }} | {{ order.date | date:'short' }}</ion-card-subtitle>
       </ion-card-header>
+
       <ion-card-content>
-        <p><strong>Address:</strong> {{ order.address }}</p>
-        <p><strong>Contact:</strong> {{ order.contact }}</p>
-        <p><strong>Service:</strong> {{ order.deliveryService?.name }}</p>
         <p><strong>Total:</strong> ₱{{ order.total }}</p>
-        <ion-list-header>Items</ion-list-header>
-        <ion-item *ngFor="let i of order.items" lines="none">
-          <ion-label>{{i.quantity}}x {{i.product.name}}</ion-label>
-        </ion-item>
+
         <ion-item>
           <ion-label>Status</ion-label>
-          <ion-select [value]="order.status" (ionChange)="updateOrderStatus(order, $event.detail.value)">
+          <ion-select [value]="order.status"
+                      (ionChange)="updateOrderStatus(order, $event.detail.value)">
             <ion-select-option value="Pending">Pending</ion-select-option>
-            <ion-select-option value="Preparing">Preparing</ion-select-option>
+            <ion-select-option value="Processing">Processing</ion-select-option>
             <ion-select-option value="Out for Delivery">Out for Delivery</ion-select-option>
             <ion-select-option value="Delivered">Delivered</ion-select-option>
           </ion-select>
         </ion-item>
+
       </ion-card-content>
     </ion-card>
+
     <div class="empty-state" *ngIf="orders.length === 0">
       <p>No customer orders yet.</p>
     </div>
@@ -159,4 +240,5 @@
       </ion-content>
     </ng-template>
   </ion-modal>
+
 </ion-content>

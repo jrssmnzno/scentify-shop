@@ -1,0 +1,118 @@
+<ion-content class="login-content">
+  <div class="login-container">
+
+    <!-- Left Side: Brand -->
+    <div class="left-section">
+      <div class="left-overlay"></div>
+      <div class="left-orb"></div>
+      <div class="left-orb orb2"></div>
+      <div class="brand-content">
+        <img src="assets/img/logo.png" alt="Scentify" class="brand-logo">
+        <h1 class="brand-name">Scentify</h1>
+        <p class="brand-tagline">Your Signature Scent Awaits</p>
+        <div class="brand-divider"></div>
+        <p class="brand-sub">Premium fragrances curated for every mood, every moment.</p>
+      </div>
+      <div class="brand-footer">✦ Est. 2026 · Premium Fragrances</div>
+    </div>
+
+    <!-- Right Side: Form -->
+    <div class="right-section">
+      <div class="login-card" [class.shake]="hasError">
+
+        <div class="login-header">
+          <div class="login-logo-mini">✦</div>
+          <h2 class="login-title">Welcome Back</h2>
+          <p class="login-subtitle">Sign in to continue to Scentify</p>
+        </div>
+
+        <form (ngSubmit)="onLogin()" class="login-form">
+
+          <!-- Email -->
+          <div class="field-group">
+            <label class="field-label">Email Address</label>
+            <div class="field-wrap" [class.field-error]="errorMessage">
+              <ion-icon name="mail-outline" class="field-icon"></ion-icon>
+              <ion-input
+                [(ngModel)]="credentials.email"
+                name="email"
+                type="email"
+                class="field-input"
+                placeholder="you@example.com"
+                autocomplete="email">
+              </ion-input>
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="field-group">
+            <label class="field-label">Password</label>
+            <div class="field-wrap" [class.field-error]="errorMessage">
+              <ion-icon name="lock-closed-outline" class="field-icon"></ion-icon>
+              <ion-input
+                [(ngModel)]="credentials.password"
+                name="password"
+                [type]="showPassword ? 'text' : 'password'"
+                class="field-input"
+                placeholder="••••••••"
+                autocomplete="current-password">
+              </ion-input>
+              <button type="button" class="eye-btn" (click)="togglePasswordVisibility()">
+                <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Error -->
+          <div class="error-banner" *ngIf="errorMessage">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            {{ errorMessage }}
+          </div>
+
+          <!-- Remember Me -->
+          <div class="remember-row">
+            <label class="checkbox-wrap">
+              <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" class="checkbox-input">
+              <span class="checkbox-box">
+                <ion-icon name="checkmark" class="checkbox-check"></ion-icon>
+              </span>
+              <span class="checkbox-label">Remember me</span>
+            </label>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="sign-in-btn" [disabled]="isLoading">
+            <ion-spinner name="crescent" *ngIf="isLoading"></ion-spinner>
+            <span *ngIf="!isLoading">Sign In</span>
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="divider">
+          <span class="divider-line"></span>
+          <span class="divider-text">Quick Access</span>
+          <span class="divider-line"></span>
+        </div>
+
+        <!-- Demo Buttons -->
+        <div class="demo-section">
+          <button class="demo-btn admin-demo" (click)="fillDemoCredentials('admin')">
+            <div class="demo-icon">🛡️</div>
+            <div class="demo-info">
+              <span class="demo-role">Admin Access</span>
+              <span class="demo-email">{{ demoCredentials.admin.email }}</span>
+            </div>
+          </button>
+          <button class="demo-btn client-demo" (click)="fillDemoCredentials('client')">
+            <div class="demo-icon">🛍️</div>
+            <div class="demo-info">
+              <span class="demo-role">Client Access</span>
+              <span class="demo-email">{{ demoCredentials.client.email }}</span>
+            </div>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</ion-content>

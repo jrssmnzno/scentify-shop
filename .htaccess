@@ -1,0 +1,164 @@
+# ============================================================================
+# Scentify .htaccess Configuration for Hostinger
+# ============================================================================
+# This file handles routing, compression, caching, and security for the
+# Scentify Angular/Ionic application and API proxy.
+# ============================================================================
+
+# ===== ENABLE MOD_REWRITE =====
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # ===== FORCE HTTPS =====
+  # Uncomment these lines to force HTTPS (recommended for production)
+  # RewriteCond %{HTTPS} off
+  # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # ===== REMOVE WWW PREFIX (Optional) =====
+  # Uncomment to remove www from URLs
+  # RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+  # RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+  # ===== API PROXY CONFIGURATION =====
+  # Route /api/* requests to backend server (localhost:3000)
+  # Make sure your backend is running on port 3000
+  RewriteCond %{REQUEST_URI} ^/api [NC]
+  RewriteRule ^api/(.*)$ http://localhost:3000/$1 [P,L]
+
+  # ===== ANGULAR SPA ROUTING =====
+  # Redirect all requests to index.html for Angular routing to work
+  # Skip actual files and directories
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [QSA,L]
+</IfModule>
+
+# ===== ENABLE COMPRESSION =====
+<IfModule mod_deflate.c>
+  # Compress HTML, CSS, JavaScript, Text, XML, and fonts
+  AddOutputFilterByType DEFLATE text/plain
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/xml
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE text/javascript
+  AddOutputFilterByType DEFLATE application/xml
+  AddOutputFilterByType DEFLATE application/xhtml+xml
+  AddOutputFilterByType DEFLATE application/rss+xml
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/x-javascript
+  AddOutputFilterByType DEFLATE application/x-font-ttf
+  AddOutputFilterByType DEFLATE application/x-font-opentype
+  AddOutputFilterByType DEFLATE font/truetype
+  AddOutputFilterByType DEFLATE font/opentype
+  AddOutputFilterByType DEFLATE image/svg+xml
+  
+  # Remove browser bugs (optional)
+  BrowserMatch ^Mozilla/4 no-no
+  BrowserMatch ^Mozilla/4\.0[678] no-no
+  BrowserMatch \bMSIE !no-no
+  BrowserMatch \bMSI[ES] !no-no
+</IfModule>
+
+# ===== BROWSER CACHING =====
+<IfModule mod_expires.c>
+  ExpiresActive On
+  
+  # Default: 1 day
+  ExpiresDefault "access plus 1 day"
+  
+  # CSS, JavaScript: 1 month (they have hash in filename if updated)
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType application/x-javascript "access plus 1 month"
+  
+  # Images: 1 year
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresByType image/vnd.microsoft.icon "access plus 1 year"
+  
+  # Fonts: 1 year
+  ExpiresByType font/ttf "access plus 1 year"
+  ExpiresByType font/otf "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType application/font-woff "access plus 1 year"
+  
+  # HTML: Don't cache (always fresh)
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+# ===== CACHE CONTROL HEADERS =====
+<IfModule mod_headers.c>
+  # Don't cache HTML files
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+  
+  # Cache static assets for 1 month
+  <FilesMatch "\.(js|css|png|gif|jpg|jpeg|webp|woff|woff2|ttf|otf|eot|svg)$">
+    Header set Cache-Control "public, max-age=2592000, immutable"
+  </FilesMatch>
+  
+  # Set proper content-type for fonts
+  <FilesMatch "\.(woff|woff2)$">
+    Header set Content-Type "application/font-woff"
+  </FilesMatch>
+</IfModule>
+
+# ===== ENABLE GZIP ENCODING =====
+<IfModule mod_gzip.c>
+  mod_gzip_on Yes
+  mod_gzip_dechunk Yes
+  mod_gzip_item_include file \.(html?|txt|css|js|json|xml|svg)$
+  mod_gzip_item_include handler ^cgi-script$
+  mod_gzip_item_include mime ^text/.*
+  mod_gzip_item_include mime ^application/x-javascript.*
+  mod_gzip_item_exclude mime ^image/.*
+  mod_gzip_level 6
+</IfModule>
+
+# ===== SECURITY HEADERS =====
+<IfModule mod_headers.c>
+  # Prevent clickjacking
+  Header set X-Frame-Options "SAMEORIGIN"
+  
+  # Prevent MIME type sniffing
+  Header set X-Content-Type-Options "nosniff"
+  
+  # Enable XSS protection
+  Header set X-XSS-Protection "1; mode=block"
+  
+  # Referrer policy
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ===== DISABLE DIRECTORY LISTING =====
+Options -Indexes
+
+# ===== BLOCK ACCESS TO SENSITIVE FILES =====
+<FilesMatch "^\.env|\.git|\.gitignore|package\.json|package-lock\.json|tsconfig|angular\.json|webpack|karma\.conf|\.htaccess">
+  Deny from all
+</FilesMatch>
+
+# ===== 404 ERROR HANDLING =====
+# Uncomment if you want custom 404 page
+# ErrorDocument 404 /index.html
+
+# ===== CORS HEADERS (If needed) =====
+# Uncomment to enable CORS for specific origins
+# <IfModule mod_headers.c>
+#   SetEnvIf Origin "^https://yourdomain\.com$" ACAO=$0
+#   Header add Access-Control-Allow-Origin %{ACAO}e env=ACAO
+#   Header add Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+#   Header add Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With"
+# </IfModule>
+
+# ===== PHP CONFIGURATION (Optional) =====
+# If you're running PHP alongside this app
+# php_flag display_errors off
+# php_flag log_errors on

@@ -1,195 +1,497 @@
 <ion-header>
-  <ion-toolbar color="primary">
+  <ion-toolbar class="luxury-toolbar" color="dark">
+    <!-- Logo -->
     <ion-buttons slot="start">
       <img src="assets/img/logo.png" alt="Scentify Logo" class="logo-img">
     </ion-buttons>
-    <ion-title>{{ appTitle }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-segment [(ngModel)]="customerSegment" style="width: 200px; margin-right: 10px;">
-        <ion-segment-button value="shop"><ion-label>Shop</ion-label></ion-segment-button>
-        <ion-segment-button value="cart"><ion-label>Cart ({{cart.length}})</ion-label></ion-segment-button>
-      </ion-segment>
-      <ion-button routerLink="/admin">
-        Admin View
+
+    <ion-title class="luxury-title">{{ appTitle }}</ion-title>
+
+    <!-- Desktop Nav -->
+    <ion-buttons slot="end" class="desktop-nav">
+      <ion-button fill="clear" (click)="customerSegment = 'shop'" [class.nav-active]="customerSegment === 'shop'" class="nav-btn">
+        <ion-label class="nav-link">Shop</ion-label>
+      </ion-button>
+      <ion-button fill="clear" (click)="customerSegment = 'orders'" [class.nav-active]="customerSegment === 'orders'" class="nav-btn">
+        <ion-label class="nav-link">My Orders</ion-label>
+      </ion-button>
+      <button class="cart-nav-btn" (click)="customerSegment = 'cart'" [class.active]="customerSegment === 'cart'">
+        <ion-icon name="bag-outline"></ion-icon>
+        <span class="cart-count" *ngIf="cartItemCount > 0">{{ cartItemCount }}</span>
+      </button>
+      <ion-button fill="clear" (click)="showLogoutModal = true" class="logout-btn" style="--color: rgba(255,255,255,0.7)">
+        <ion-icon name="log-out-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
+
+    <!-- Mobile Nav: cart + burger -->
+    <ion-buttons slot="end" class="mobile-nav">
+      <button class="cart-nav-btn" (click)="customerSegment = 'cart'" [class.active]="customerSegment === 'cart'">
+        <ion-icon name="bag-outline"></ion-icon>
+        <span class="cart-count" *ngIf="cartItemCount > 0">{{ cartItemCount }}</span>
+      </button>
+      <button class="burger-btn" (click)="showMobileMenu = !showMobileMenu" [class.open]="showMobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+    </ion-buttons>
   </ion-toolbar>
-  <ion-toolbar color="secondary">
-    <ion-title size="small">Your Favorite Fragrance is Here.</ion-title>
+
+  <!-- Mobile Dropdown Menu -->
+  <div class="mobile-menu" [class.visible]="showMobileMenu" (click)="showMobileMenu = false">
+    <button class="mobile-menu-item" (click)="customerSegment = 'shop'; showMobileMenu = false" [class.active]="customerSegment === 'shop'">
+      Shop
+    </button>
+    <button class="mobile-menu-item" (click)="customerSegment = 'orders'; showMobileMenu = false" [class.active]="customerSegment === 'orders'">
+      My Orders
+    </button>
+    <button class="mobile-menu-item logout-mobile" (click)="showLogoutModal = true; showMobileMenu = false">
+      Logout
+    </button>
+  </div>
+
+  <!-- Tagline -->
+  <div class="tagline-bar">
+    <span class="tagline-text">✦ Curated Fragrances &nbsp;&nbsp;✦ Premium Selection &nbsp;&nbsp;✦ Free Delivery Over ₱500</span>
+  </div>
+
+  <!-- Scent Filter Pills -->
+  <ion-toolbar class="filter-toolbar" *ngIf="customerSegment === 'shop'">
+    <div class="filter-pills-container">
+      <button
+        *ngFor="let filter of scentFilters"
+        [class.active]="filter === 'All' && !selectedScentFilter || filter === selectedScentFilter"
+        (click)="selectScentFilter(filter)"
+        class="filter-pill">
+        {{ filter }}
+      </button>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <!-- CUSTOMER APP VIEW -->
-    <div *ngIf="customerSegment === 'shop'">
-  <ng-container *ngIf="items.length === 0">
-    <div class="empty-state">
-      <ion-icon name="alert-circle-outline" size="large"></ion-icon>
-      <p>No products available</p>
-      <div class="placeholder-grid">
-        <ion-card *ngFor="let p of [1,2,3,4,5,6]">
-          <div class="placeholder-img"></div>
-          <div class="placeholder-text"></div>
-        </ion-card>
+<ion-content class="luxury-content">
+
+  <!-- ===== SHOP VIEW ===== -->
+  <div *ngIf="customerSegment === 'shop'" class="shop-view">
+
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+      <div class="hero-content">
+        <p class="hero-eyebrow">NEW COLLECTION 2026</p>
+        <h1 class="hero-headline">Wear Your<br><em>Signature</em> Scent</h1>
+        <p class="hero-sub">Discover fragrances that tell your story</p>
+        <button class="hero-cta" (click)="selectScentFilter('All')">Explore Collection</button>
       </div>
+      <div class="hero-orb"></div>
+      <div class="hero-orb hero-orb-2"></div>
     </div>
-  </ng-container>
-  <ion-grid *ngIf="items.length > 0">
-    <ion-row>
-      <ion-col size="12" size-sm="6" size-md="4" size-lg="3" *ngFor="let i of items">
-        <ion-card class="product-card" (click)="openProductDetail(i)">
-          <div class="product-img-wrapper">
-            <img [src]="i.img" alt="{{ i.name }}" class="product-img">
-            <div class="tag" [ngClass]="i.tag.toLowerCase()">{{ i.tag }}</div>
-            <div class="wishlist-wrapper" (click)="toggleWishlist(i); $event.stopPropagation()">
-              <ion-icon [name]="i.wishlist ? 'heart' : 'heart-outline'" class="wishlist-icon"></ion-icon>
-            </div>
+
+    <!-- Location Card -->
+    <div class="location-strip" *ngIf="userLocation || loadingLocation">
+      <ion-icon name="location-outline" class="loc-icon"></ion-icon>
+      <span *ngIf="loadingLocation" class="loc-text">🔍 Detecting location...</span>
+      <span *ngIf="userLocation && !loadingLocation" class="loc-text" [title]="'Lat: ' + (userLocation.latitude | number:'1.6-6') + ', Lon: ' + (userLocation.longitude | number:'1.6-6')">
+        📍 {{ userLocation.address || 'Location detected' }}
+        <span class="loc-city" *ngIf="userLocation.city"> • {{ userLocation.city }}</span>
+        <span class="loc-accuracy" *ngIf="userLocation.accuracy"> · ±{{ userLocation.accuracy | number:'1.0-0' }}m accuracy</span>
+      </span>
+      <button class="loc-refresh" (click)="getCurrentUserLocation()">Refresh</button>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="section-header">
+      <h2 class="section-title">Our Fragrances</h2>
+      <span class="section-count">{{ items.length }} scents</span>
+    </div>
+
+    <div class="product-grid" *ngIf="items.length > 0">
+      <div class="product-card" *ngFor="let i of items" (click)="openProductDetail(i)">
+        <div class="card-img-wrapper" [class.loading]="!i.imgLoaded">
+          <img [src]="i.img" [alt]="i.name" class="card-img" (load)="i.imgLoaded = true">
+          <div class="card-tag" [ngClass]="i.tag.toLowerCase()">{{ i.tag }}</div>
+          <button class="wishlist-btn" (click)="toggleWishlist(i); $event.stopPropagation()">
+            <ion-icon [name]="i.wishlist ? 'heart' : 'heart-outline'" [class.wishlisted]="i.wishlist"></ion-icon>
+          </button>
+          <div class="card-overlay">
+            <button class="quick-view-btn" (click)="openProductDetail(i); $event.stopPropagation()">Quick View</button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-category">{{ i.category }}</span>
+            <span class="card-price">₱{{ i.price }}</span>
+          </div>
+          <h3 class="card-name">{{ i.name }}</h3>
+
+          <div class="card-rating">
+            <span class="stars">
+              <ion-icon *ngFor="let star of [1,2,3,4,5]"
+                [name]="i.rating >= star ? 'star' : i.rating >= star - 0.5 ? 'star-half' : 'star-outline'">
+              </ion-icon>
+            </span>
+            <span class="rating-num">{{ i.rating }}</span>
           </div>
 
-          <ion-card-header>
-            <ion-card-title>{{ i.name }}</ion-card-title>
-          </ion-card-header>
+          <p class="card-desc">{{ i.description }}</p>
 
-          <ion-card-content>
-            <div class="price">₱{{ i.price }}</div>
-            <div class="pill">{{ i.category }}</div>
-
-            <div class="rating">
-              <ion-icon *ngFor="let star of [1,2,3,4,5]"
-                        [name]="i.rating >= star ? 'star' : i.rating >= star - 0.5 ? 'star-half' : 'star-outline'"></ion-icon>
-              <span class="rating-text">{{ i.rating }}</span>
-            </div>
-
-            <p class="description">{{ i.description }}</p>
-
-            <ion-button expand="block" color="primary" (click)="buyProduct(i); $event.stopPropagation()">
-              Add to Cart
-            </ion-button>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-    </div>
-
-    <div *ngIf="customerSegment === 'cart'">
-      <ion-list *ngIf="cart.length > 0">
-        <ion-item-group>
-          <ion-item-divider><ion-label>Your Items</ion-label></ion-item-divider>
-          <ion-item *ngFor="let item of cart; let j = index">
-            <ion-thumbnail slot="start"><img [src]="item.product.img"></ion-thumbnail>
-            <ion-label>
-              <h2>{{ item.product.name }}</h2>
-              <p>₱{{ item.product.price }} x {{ item.quantity }} = <strong>₱{{ item.product.price * item.quantity }}</strong></p>
-            </ion-label>
-            <div slot="end" class="qty-controls">
-              <ion-button fill="clear" color="medium" (click)="decreaseQty(j)">
-                <ion-icon name="remove-circle-outline"></ion-icon>
-              </ion-button>
-              <span class="qty-value">{{ item.quantity }}</span>
-              <ion-button fill="clear" color="primary" (click)="increaseQty(j)">
-                <ion-icon name="add-circle-outline"></ion-icon>
-              </ion-button>
-              <ion-button fill="clear" color="danger" (click)="removeFromCart(j)">
-                <ion-icon name="trash-outline"></ion-icon>
-              </ion-button>
-            </div>
-          </ion-item>
-        </ion-item-group>
-
-        <ion-item-group class="ion-margin-top">
-          <ion-item-divider><ion-label>Delivery Details</ion-label></ion-item-divider>
-          <ion-item>
-            <ion-label position="stacked">Full Name</ion-label>
-            <ion-input [(ngModel)]="checkoutData.name" placeholder="Enter your name"></ion-input>
-          </ion-item>
-          <ion-item>
-            <ion-label position="stacked">Delivery Address</ion-label>
-            <ion-textarea [(ngModel)]="checkoutData.address" placeholder="Enter full address"></ion-textarea>
-          </ion-item>
-          <ion-item>
-            <ion-label position="stacked">Contact Number</ion-label>
-            <ion-input [(ngModel)]="checkoutData.contact" type="tel" placeholder="09..."></ion-input>
-          </ion-item>
-        </ion-item-group>
-
-        <div class="ion-padding-horizontal ion-margin-top" *ngIf="!showServices">
-          <ion-button expand="block" fill="outline" (click)="findServices()">
-            Find Delivery Services
-          </ion-button>
+          <button class="add-cart-btn" (click)="buyProduct(i); $event.stopPropagation()">
+            <ion-icon name="bag-add-outline"></ion-icon>
+            Add to Bag
+          </button>
         </div>
-
-        <ion-item-group class="ion-margin-top" *ngIf="showServices">
-          <ion-item-divider><ion-label>Select Delivery Service</ion-label></ion-item-divider>
-          <ion-radio-group [(ngModel)]="checkoutData.selectedServiceId">
-            <ion-item *ngFor="let service of deliveryServices">
-              <ion-label>
-                <h3>{{ service.name }}</h3>
-                <p>{{ service.estimatedTime }}</p>
-              </ion-label>
-              <ion-note slot="end" color="primary">+₱{{ service.basePrice }}</ion-note>
-              <ion-radio slot="start" [value]="service.id"></ion-radio>
-            </ion-item>
-          </ion-radio-group>
-        </ion-item-group>
-
-        <div class="ion-padding">
-          <h3>Total: ₱{{ cartTotal }}</h3>
-          <ion-button expand="block" color="success" (click)="placeOrder()">Book Delivery</ion-button>
-        </div>
-      </ion-list>
-
-      <div class="empty-state" *ngIf="cart.length === 0">
-        <p>Your cart is empty.</p>
-        <ion-button fill="outline" (click)="customerSegment = 'shop'">Go Shopping</ion-button>
       </div>
     </div>
+
+    <div class="empty-state" *ngIf="items.length === 0">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>No fragrances found</p>
+    </div>
+  </div>
+
+  <!-- ===== CART VIEW ===== -->
+  <div *ngIf="customerSegment === 'cart'" class="cart-view">
+    <div class="page-heading">
+      <h2>Your Bag</h2>
+      <span class="item-count">{{ cart.length }} item{{ cart.length !== 1 ? 's' : '' }}</span>
+    </div>
+
+    <div *ngIf="cart.length > 0" class="cart-layout">
+      <!-- Cart Items -->
+      <div class="cart-items-section">
+        <div class="cart-item" *ngFor="let item of cart; let j = index">
+          <img [src]="item.product.img" [alt]="item.product.name" class="cart-item-img">
+          <div class="cart-item-info">
+            <h4 class="cart-item-name">{{ item.product.name }}</h4>
+            <p class="cart-item-price">₱{{ item.product.price }}</p>
+            <div class="qty-row">
+              <button class="qty-btn" (click)="decreaseQty(j)">−</button>
+              <span class="qty-val">{{ item.quantity }}</span>
+              <button class="qty-btn" (click)="increaseQty(j)">+</button>
+            </div>
+          </div>
+          <div class="cart-item-right">
+            <p class="cart-item-subtotal">₱{{ item.product.price * item.quantity }}</p>
+            <button class="remove-btn" (click)="removeFromCart(j)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checkout Panel -->
+      <div class="checkout-panel">
+        <h3 class="checkout-title">Delivery Details</h3>
+
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input class="form-input" [(ngModel)]="checkoutData.name" placeholder="Your name">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Delivery Address</label>
+          <textarea class="form-input form-textarea" [(ngModel)]="checkoutData.address" placeholder="Full address"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Contact Number</label>
+          <input class="form-input" [(ngModel)]="checkoutData.contact" type="tel" placeholder="09xxxxxxxxx"
+            (input)="validateContact()" maxlength="11">
+          <span class="form-error" *ngIf="contactError">{{ contactError }}</span>
+        </div>
+
+        <button class="find-services-btn" *ngIf="!showServices" (click)="findServices()">
+          <ion-icon name="search-outline"></ion-icon>
+          Find Delivery Services
+        </button>
+
+        <div class="services-list" *ngIf="showServices">
+          <h4 class="services-title">Select Delivery Service</h4>
+          <ion-radio-group [(ngModel)]="checkoutData.selectedServiceId">
+            <label class="service-option" *ngFor="let service of deliveryServices">
+              <ion-radio [value]="service.id" class="service-radio"></ion-radio>
+              <div class="service-info">
+                <span class="service-name">{{ service.name }}</span>
+                <span class="service-time">{{ service.estimatedTime }}</span>
+              </div>
+              <span class="service-price">+₱{{ service.basePrice }}</span>
+            </label>
+          </ion-radio-group>
+        </div>
+
+        <div class="order-summary">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span>₱{{ cartSubtotal }}</span>
+          </div>
+          <div class="summary-row" *ngIf="checkoutData.selectedServiceId">
+            <span>Delivery</span>
+            <span>₱{{ selectedDeliveryPrice }}</span>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-row total-row">
+            <span>Total</span>
+            <span>₱{{ cartTotal }}</span>
+          </div>
+        </div>
+
+        <button class="place-order-btn" (click)="placeOrder()">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          Place Order
+        </button>
+      </div>
+    </div>
+
+    <div class="empty-cart" *ngIf="cart.length === 0">
+      <div class="empty-cart-icon">🛍️</div>
+      <h3>Your bag is empty</h3>
+      <p>Discover our premium fragrances</p>
+      <button class="shop-now-btn" (click)="customerSegment = 'shop'">Shop Now</button>
+    </div>
+  </div>
+
+  <!-- ===== ORDERS VIEW ===== -->
+  <div *ngIf="customerSegment === 'orders'" class="orders-view">
+    <div class="page-heading">
+      <h2>My Orders</h2>
+      <span class="item-count">{{ dataService.orders.length }} order{{ dataService.orders.length !== 1 ? 's' : '' }}</span>
+    </div>
+
+    <div *ngIf="dataService.orders.length > 0" class="orders-list">
+      <div class="order-card" *ngFor="let order of dataService.orders">
+        <div class="order-card-header">
+          <div>
+            <span class="order-id">{{ order.id }}</span>
+            <span class="order-date">{{ order.date | date:'MMM d, yyyy · h:mm a' }}</span>
+          </div>
+          <span class="order-status-badge" [ngClass]="order.status.toLowerCase().split(' ').join('-')">
+            {{ order.status }}
+          </span>
+        </div>
+
+        <!-- Order Tracking Bar -->
+        <div class="tracking-bar">
+          <div class="track-step" [class.done]="isStepDone(order.status, 'Pending')" [class.active]="isStepActive(order.status, 'Pending')">
+            <div class="track-dot"></div>
+            <span class="track-label">Pending</span>
+          </div>
+          <div class="track-line" [class.done]="isStepDone(order.status, 'Processing')"></div>
+          <div class="track-step" [class.done]="isStepDone(order.status, 'Processing')" [class.active]="isStepActive(order.status, 'Processing')">
+            <div class="track-dot"></div>
+            <span class="track-label">Processing</span>
+          </div>
+          <div class="track-line" [class.done]="isStepDone(order.status, 'Out for Delivery')"></div>
+          <div class="track-step" [class.done]="isStepDone(order.status, 'Out for Delivery')" [class.active]="isStepActive(order.status, 'Out for Delivery')">
+            <div class="track-dot"></div>
+            <span class="track-label">On the Way</span>
+          </div>
+          <div class="track-line" [class.done]="isStepDone(order.status, 'Delivered')"></div>
+          <div class="track-step" [class.done]="isStepDone(order.status, 'Delivered')" [class.active]="isStepActive(order.status, 'Delivered')">
+            <div class="track-dot"></div>
+            <span class="track-label">Delivered</span>
+          </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="order-items">
+          <div class="order-item-row" *ngFor="let item of order.items">
+            <img [src]="item.product.img" [alt]="item.product.name" class="order-item-img">
+            <span class="order-item-name">{{ item.product.name }}</span>
+            <span class="order-item-qty">×{{ item.quantity }}</span>
+            <span class="order-item-price">₱{{ item.product.price * item.quantity }}</span>
+          </div>
+        </div>
+
+        <div class="order-card-footer">
+          <div class="order-delivery-info">
+            <ion-icon name="location-outline"></ion-icon>
+            <span>{{ order.address }}</span>
+          </div>
+          <div class="order-total">Total: <strong>₱{{ order.total }}</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-cart" *ngIf="dataService.orders.length === 0">
+      <div class="empty-cart-icon">📦</div>
+      <h3>No orders yet</h3>
+      <p>Your order history will appear here</p>
+      <button class="shop-now-btn" (click)="customerSegment = 'shop'">Start Shopping</button>
+    </div>
+  </div>
 
   <!-- Product Detail Modal -->
-  <ion-modal [isOpen]="isModalOpen" (didDismiss)="setOpen(false)" class="product-modal">
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="setOpen(false)" class="luxury-modal">
     <ng-template>
-      <ion-content class="ion-padding product-modal-content" *ngIf="selectedProduct">
-        <div class="modal-close-btn" (click)="setOpen(false)">
-          <ion-icon name="close-outline"></ion-icon>
-        </div>
+      <ion-content class="modal-content" *ngIf="selectedProduct">
+        <button class="modal-close" (click)="setOpen(false)">
+          ✕
+        </button>
 
-        <div class="detail-container">
-          <div class="image-frame">
-            <img [src]="selectedProduct.img" [alt]="selectedProduct.name">
+        <div class="modal-body">
+          <div class="modal-img-section">
+            <div class="modal-img-frame">
+              <img [src]="selectedProduct.img" [alt]="selectedProduct.name" class="modal-img">
+            </div>
           </div>
 
-          <div class="product-info">
-            <div class="category-pill">{{ selectedProduct.category }}</div>
-            <h1>{{ selectedProduct.name }}</h1>
-            <div class="price-tag">₱{{ selectedProduct.price }}</div>
-            <p class="description">{{ selectedProduct.description }}</p>
-          </div>
+          <div class="modal-info-section">
+            <span class="modal-category">{{ selectedProduct.category }}</span>
+            <h1 class="modal-name">{{ selectedProduct.name }}</h1>
+            <div class="modal-price">₱{{ selectedProduct.price }}</div>
 
-          <div class="footer-actions">
-            <div class="quantity-control">
-              <ion-button fill="outline" shape="round" (click)="decreaseDetailQty()">
-                <ion-icon name="remove" slot="icon-only"></ion-icon>
-              </ion-button>
-              <span class="qty">{{ detailQty }}</span>
-              <ion-button fill="outline" shape="round" (click)="increaseDetailQty()">
-                <ion-icon name="add" slot="icon-only"></ion-icon>
-              </ion-button>
+            <div class="modal-rating">
+              <ion-icon *ngFor="let star of [1,2,3,4,5]"
+                [name]="selectedProduct.rating >= star ? 'star' : selectedProduct.rating >= star - 0.5 ? 'star-half' : 'star-outline'">
+              </ion-icon>
+              <span>{{ selectedProduct.rating }}</span>
             </div>
 
-            <ion-button expand="block" class="add-cart-btn" (click)="addToCartFromDetail()">
-              Add to Cart — ₱{{ selectedProduct.price * detailQty }}
-            </ion-button>
+            <p class="modal-desc">{{ selectedProduct.description }}</p>
+
+            <div class="modal-notes" *ngIf="selectedProduct.notes?.length">
+              <h4 class="notes-title">Scent Notes</h4>
+              <div class="notes-chips">
+                <span class="note-chip" *ngFor="let note of selectedProduct.notes">{{ note }}</span>
+              </div>
+            </div>
+
+            <div class="modal-mood" *ngIf="selectedProduct.mood">
+              <span class="mood-label">Mood</span>
+              <span class="mood-value">{{ selectedProduct.mood }}</span>
+            </div>
+
+            <div class="modal-qty-section">
+              <span class="qty-label">Quantity</span>
+              <div class="modal-qty-control">
+                <button class="mq-btn" (click)="decreaseDetailQty()">−</button>
+                <span class="mq-val">{{ detailQty }}</span>
+                <button class="mq-btn" (click)="increaseDetailQty()">+</button>
+              </div>
+            </div>
+
+            <button class="modal-add-btn" (click)="addToCartFromDetail()" [disabled]="addingToCart">
+              <ion-spinner name="crescent" *ngIf="addingToCart"></ion-spinner>
+              <span *ngIf="!addingToCart">
+                <ion-icon name="bag-add-outline"></ion-icon>
+                Add to Bag — ₱{{ selectedProduct.price * detailQty }}
+              </span>
+            </button>
           </div>
         </div>
-      </ion-content>
+      
+  <!-- Logout Confirmation Modal -->
+  <div class="logout-overlay" *ngIf="showLogoutModal" (click)="showLogoutModal = false">
+    <div class="logout-modal" (click)="$event.stopPropagation()">
+      <div class="logout-modal-icon">👋</div>
+      <h3 class="logout-modal-title">Leaving so soon?</h3>
+      <p class="logout-modal-text">Are you sure you want to logout?</p>
+      <div class="logout-modal-actions">
+        <button class="logout-cancel-btn" (click)="showLogoutModal = false">Stay</button>
+        <button class="logout-confirm-btn" (click)="logout()">Yes, Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Success Modal -->
+  <div class="success-overlay" *ngIf="showSuccessModal" (click)="showSuccessModal = false">
+    <div class="success-modal" (click)="$event.stopPropagation()">
+      <div class="success-icon">🎉</div>
+      <h3 class="success-title">Order Placed!</h3>
+      <p class="success-text">Your order has been placed successfully. You can track it in <strong>My Orders</strong>.</p>
+      <div class="success-order-id" *ngIf="lastOrderId">{{ lastOrderId }}</div>
+      <button class="success-btn" (click)="showSuccessModal = false; customerSegment = 'orders'">
+        Track My Order
+      </button>
+      <button class="success-btn-secondary" (click)="showSuccessModal = false; customerSegment = 'shop'">
+        Continue Shopping
+      </button>
+    </div>
+  </div>
+
+  <!-- Added to Bag Modal -->
+  <div class="bag-overlay" *ngIf="showBagModal" (click)="showBagModal = false">
+    <div class="bag-modal" (click)="$event.stopPropagation()">
+      <div class="bag-modal-img" *ngIf="lastAddedProduct">
+        <img [src]="lastAddedProduct.img" [alt]="lastAddedProduct.name">
+      </div>
+      <div class="bag-modal-info">
+        <div class="bag-modal-check">✓</div>
+        <p class="bag-modal-label">Added to Bag</p>
+        <h3 class="bag-modal-name" *ngIf="lastAddedProduct">{{ lastAddedProduct.name }}</h3>
+        <p class="bag-modal-price" *ngIf="lastAddedProduct">₱{{ lastAddedProduct.price }}</p>
+      </div>
+      <div class="bag-modal-actions">
+        <button class="bag-continue-btn" (click)="showBagModal = false">
+          Continue Shopping
+        </button>
+        <button class="bag-view-btn" (click)="showBagModal = false; customerSegment = 'cart'">
+          View Bag
+          <span class="bag-count-chip">{{ cartItemCount }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-content>
     </ng-template>
   </ion-modal>
+
+  <!-- Logout Confirmation Modal -->
+  <div class="logout-overlay" *ngIf="showLogoutModal" (click)="showLogoutModal = false">
+    <div class="logout-modal" (click)="$event.stopPropagation()">
+      <div class="logout-modal-icon">👋</div>
+      <h3 class="logout-modal-title">Leaving so soon?</h3>
+      <p class="logout-modal-text">Are you sure you want to logout?</p>
+      <div class="logout-modal-actions">
+        <button class="logout-cancel-btn" (click)="showLogoutModal = false">Stay</button>
+        <button class="logout-confirm-btn" (click)="logout()">Yes, Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Success Modal -->
+  <div class="success-overlay" *ngIf="showSuccessModal" (click)="showSuccessModal = false">
+    <div class="success-modal" (click)="$event.stopPropagation()">
+      <div class="success-icon">🎉</div>
+      <h3 class="success-title">Order Placed!</h3>
+      <p class="success-text">Your order has been placed successfully. You can track it in <strong>My Orders</strong>.</p>
+      <div class="success-order-id" *ngIf="lastOrderId">{{ lastOrderId }}</div>
+      <button class="success-btn" (click)="showSuccessModal = false; customerSegment = 'orders'">
+        Track My Order
+      </button>
+      <button class="success-btn-secondary" (click)="showSuccessModal = false; customerSegment = 'shop'">
+        Continue Shopping
+      </button>
+    </div>
+  </div>
+
+  <!-- Added to Bag Modal -->
+  <div class="bag-overlay" *ngIf="showBagModal" (click)="showBagModal = false">
+    <div class="bag-modal" (click)="$event.stopPropagation()">
+      <div class="bag-modal-img" *ngIf="lastAddedProduct">
+        <img [src]="lastAddedProduct.img" [alt]="lastAddedProduct.name">
+      </div>
+      <div class="bag-modal-info">
+        <div class="bag-modal-check">✓</div>
+        <p class="bag-modal-label">Added to Bag</p>
+        <h3 class="bag-modal-name" *ngIf="lastAddedProduct">{{ lastAddedProduct.name }}</h3>
+        <p class="bag-modal-price" *ngIf="lastAddedProduct">₱{{ lastAddedProduct.price }}</p>
+      </div>
+      <div class="bag-modal-actions">
+        <button class="bag-continue-btn" (click)="showBagModal = false">
+          Continue Shopping
+        </button>
+        <button class="bag-view-btn" (click)="showBagModal = false; customerSegment = 'cart'">
+          View Bag
+          <span class="bag-count-chip">{{ cartItemCount }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </ion-content>
 
-<ion-footer>
-  <ion-toolbar color="light">
-    <ion-title size="small">
-      &copy; 2026 {{ appTitle }} | <a href="#">Privacy</a> | <a href="#">Terms</a>
-    </ion-title>
-  </ion-toolbar>
+<ion-footer class="luxury-footer">
+  <div class="footer-inner">
+    <span class="footer-brand">✦ Scentify</span>
+    <span class="footer-copy">© 2026 · <a href="#">Privacy</a> · <a href="#">Terms</a></span>
+  </div>
 </ion-footer>
