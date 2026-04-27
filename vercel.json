@@ -1,6 +1,6 @@
 {
   "buildCommand": "ng build --configuration production",
-  "outputDirectory": "dist/scentify",
+  "outputDirectory": "www",
   "framework": "angular",
   "functions": {
     "api/**/*.js": {
