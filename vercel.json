@@ -1,0 +1,33 @@
+{
+  "buildCommand": "ng build --configuration production",
+  "outputDirectory": "dist/scentify",
+  "public": "www",
+  "framework": "angular",
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 10,
+      "memory": 128
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
